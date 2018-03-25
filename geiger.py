@@ -108,7 +108,7 @@ if __name__ == "__main__":
 	comlist = OptionMenu(topFrame, cv, *coms, command=comsSelect)
 	comlist.grid(row=0, column=1)
 
-	ser = serial.Serial()
+	ser = serial.Serial(timeout=1)
 	ser.baudrate = 9600
 	ser.port = coms[cv.get()]
 	root.after(1000, readSerial)
