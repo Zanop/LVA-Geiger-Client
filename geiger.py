@@ -49,7 +49,7 @@ def getComPorts():
 	comlist = {}
 	coms = serial.tools.list_ports.comports()
 	for com in coms:
-		comText.configure(state='normal')
+		#comText.configure(state='normal')
 		#comText.insert(END, com.description+ "\n")
 		#comText.configure(state='disabled')
 		#comlist[com['name']]=com['device']
