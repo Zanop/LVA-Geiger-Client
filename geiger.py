@@ -12,47 +12,48 @@ comStatus.set("COM")
 lvaStatus.set("LVA")
 reading.set("CPS: -, CPM: --, --- uSv/h")
 
-def comsSelect(event):
+# detect if this is lva geiger output
+def isLva(sline):
+  pattern = re.compile("CPS, \d+, CPM, \d+, uSv/hr,")
+  ok = pattern.match(sline)
+  if ok != None:
+    return True
+  else:
+    return False
+
+# print line in the text console
+def consolePrint(text, nl=False):
   comText.configure(state='normal')
-  comText.insert(END,"Selected: "+coms[cv.get()])
+  comText.insert(END, text)
+  if nl:
+    comText.insert(END, "\n")
+  comText.configure(state='disabled')
+
+def comsSelect(event):
+  consolePrint("Selected: "+coms[cv.get()])
   if ser.port != coms[cv.get()]:
     ser.close()
     ser.port = coms[cv.get()]
     ser.open()
     if ser.is_open:
-      comText.insert(END," Port open!")
+      consolePrint(" Port open!")
       comStatus.set('COM')
       comStatusLabel.config(fg="green")
     else:
-        comText.insert(END," Couldn't open the port")
+        consolePrint(" Couldn't open the port")
         comStatus.set('COM')
         comStatusLabel.config(fg="red")
     # Search for lva geiger
-    line = ser.readline()
-    pattern = re.compile("CPS, \d+, CPM, \d+, uSv/hr,")
-    ok = pattern.match(line.decode('ascii'))
-    if ok != None:
-      comText.insert(END," Found LVA Geiger!")
-      lvaStatus.set("LVA")
-      lvaStatusLabel.config(fg="green")
-    else:
-      comText.insert(END," LVA Geiger not found.")
-      lvaStatus.set("LVA")
-      lvaStatusLabel.config(fg="red")
     ser.timeout=0.09
   else:
-    comText.insert(END, "Port already selected!")
-  comText.insert(END, "\n")
-  comText.configure(state='disabled')
+    consolePrint("Port already selected!")
+  consolePrint("", nl=True)
+  
 
 def getComPorts():
   comlist = {}
   coms = serial.tools.list_ports.comports()
   for com in coms:
-    #comText.configure(state='normal')
-    #comText.insert(END, com.description+ "\n")
-    #comText.configure(state='disabled')
-    #comlist[com['name']]=com['device']
     comlist[com.description]=com.device
   return(comlist)
 
@@ -60,23 +61,25 @@ def readSerial():
   root.after(1000, readSerial)
   if ser.is_open:
     line = ser.readline()
+    if isLva(line.decode('ascii')):
+      lvaStatus.set("LVA")
+      lvaStatusLabel.config(fg="green")
+    else:
+      lvaStatus.set("LVA")
+      lvaStatusLabel.config(fg="red")
     ser.reset_input_buffer()
     sline = line.decode('ascii').rstrip()
     pattern = re.compile("CPS, (\d+), CPM, (\d+), uSv/hr, ([\d\.]+), (\w+)")
     m = pattern.match(sline)
     if m != None:
-      comText.configure(state='normal')
-      #comText.insert(END, sline + "\n" + m.group(3))
+      #consolePrint(sline + "\n" + m.group(3))
       reading.set(sline)
-      comText.insert(END, sline + "\n")
-      comText.configure(state='disabled')
-    
+      consolePrint(sline, nl=True)    
   pass
   
 def showEnd(event):
   comText.see(END)
   comText.edit_modified(0) #IMPORTANT - or <<Modified>> will not be called later.
-
 
 if __name__ == "__main__":
   topFrame = Frame(root)
