@@ -15,6 +15,12 @@
   pip3 install pyserial
 ```
 
+# Usage
+
+```
+  python3 geiger.py
+```
+
 # Links
 
 [GitHub](https://github.com/anrieff/geiger-counter) Geiger Counter firmware
