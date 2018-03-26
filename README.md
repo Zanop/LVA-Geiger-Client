@@ -1,4 +1,4 @@
-# LVA Geiger Client v.0.1
+# LVA Geiger Client v0.1.1
 
 ![Image of Geiger Counter](assets/geiger.jpg)
 
