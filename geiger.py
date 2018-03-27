@@ -2,6 +2,7 @@ from tkinter import *
 import serial
 import serial.tools.list_ports
 import re
+import time
 
 root = Tk()
 root.winfo_toplevel().title("Geiger Counter")
@@ -78,7 +79,18 @@ def readSerial():
 def getReelog():
   if ser.is_open:
     ser.write("SILENT\n".encode('ascii'))
-    line1 = ser.readline()
+    # wait for possible "CPS, 0, CPM, 34, uSv/hr, 0.19, SLOW" in transit 
+    # ~35-40 chars@1ms per char (9600bps)
+    time.sleep(0.04)
+    ser.reset_input_buffer()
+    ser.write("SILENT\n".encode('ascii'))
+    response = ser.readline().decode('ascii')
+    #if response != 'OK\r\n' and re.match('CPS', response) is None:
+    if response != 'OK\r\n':
+      consolePrint("Error switching to SILENT {}".format(response), nl=True)
+      return False
+    # Clear the buffer from reports
+    ser.reset_input_buffer()
     ser.write("REELOG\n".encode('ascii'))
     line1 = ser.readline()
     line2 = ser.readline()
@@ -115,7 +127,7 @@ if __name__ == "__main__":
   doseLabel = Label(mainFrame, textvariable = reading, font=('Times', '24'))
   doseLabel.pack(fill="x")
 
-  comText = Text(bottomFrame, state='normal', width=60, height=5, bg="black", fg="lightgray")
+  comText = Text(bottomFrame, state='normal', width=80, height=20, bg="black", fg="lightgray")
   comText.bind('<<Modified>>',showEnd)
   comText.pack()
 
