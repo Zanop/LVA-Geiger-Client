@@ -48,7 +48,6 @@ def comsSelect(event):
   else:
     consolePrint("Port already selected!")
   consolePrint("", nl=True)
-  
 
 def getComPorts():
   comlist = {}
@@ -74,9 +73,24 @@ def readSerial():
     if m != None:
       #consolePrint(sline + "\n" + m.group(3))
       reading.set(sline)
-      consolePrint(sline, nl=True)    
-  pass
+      consolePrint(sline, nl=True)
+
+def getReelog():
+  if ser.is_open:
+    ser.write("SILENT\n".encode('ascii'))
+    line1 = ser.readline()
+    ser.write("REELOG\n".encode('ascii'))
+    line1 = ser.readline()
+    line2 = ser.readline()
+    #consolePrint(line1.decode('ascii'))
+    #consolePrint(line2.decode('ascii'))
+    logmeta = line1.decode('ascii').rstrip().split(',')
+    logdata = line2.decode('ascii').rstrip().split(',')
+    consolePrint({'logmeta': logmeta, 'logdata': logdata}, nl=True)
+    ser.write('NOISY\n'.encode('ascii'))
+  return({'logmeta': logmeta, 'logdata': logdata })
   
+# Scroll the console at the bottom
 def showEnd(event):
   comText.see(END)
   comText.edit_modified(0) #IMPORTANT - or <<Modified>> will not be called later.
@@ -95,6 +109,8 @@ if __name__ == "__main__":
   comStatusLabel.grid(row=0, column=2)
   lvaStatusLabel = Label(topFrame, text="LVA", fg="red", textvariable=lvaStatus)
   lvaStatusLabel.grid(row=0, column=3)
+  logButton = Button(topFrame, text="Readlog", command=getReelog)
+  logButton.grid(row=0, column=4)
 
   doseLabel = Label(mainFrame, textvariable = reading, font=('Times', '24'))
   doseLabel.pack(fill="x")
