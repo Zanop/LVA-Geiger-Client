@@ -217,9 +217,10 @@ def showEnd(event):
   comText.edit_modified(0) #IMPORTANT - or <<Modified>> will not be called later.
 
 if __name__ == "__main__":
-  CPS=0
-  CPM=0
-  uSvh=0
+  CPS="1"
+  CPM="34"
+  uSvh="0.14"
+  Algo="SLOW"
   topFrame = Frame(root)
   mainFrame = Frame(root)
   bottomFrame = Frame(root)
@@ -231,6 +232,8 @@ if __name__ == "__main__":
   gaugeFrame.grid(row=0, column=0, padx=5, pady=5, sticky=N+S+W+E)
   infoFrame.grid(row=0, column=1, padx=5, pady=5, sticky=N+E+S)
 
+  
+
   comLabel = Label(topFrame, text="Com")
   comLabel.grid(row=0)
   comStatusLabel = Label(topFrame, text="COM", fg="red", textvariable=comStatus)
@@ -241,10 +244,28 @@ if __name__ == "__main__":
   logButton.grid(row=0, column=4)
 
 
-  doseLabel = Label(gaugeFrame, textvariable = reading, font=('Times', '24'))
-  doseLabel.grid(row=0, column=0)
+  #doseLabel = Label(gaugeFrame, textvariable = reading, font=('Times', '24'))
+  #doseLabel.grid(row=0, column=0)
   infoLabel = Label(infoFrame, text="FW: r336")
   infoLabel.grid(row=0, column=1)
+
+  doseLabelCPSLabel = Label(gaugeFrame, text="CPS")
+  doseLabelCPMLabel = Label(gaugeFrame, text="CPM")
+  doseLabeluSvLabel = Label(gaugeFrame, text="uSv/h")
+  doseLabelAlgoLabel = Label(gaugeFrame, text="Algo")
+  doseLabelCPSValue = Label(gaugeFrame, text="--", textvariable=CPS, font=('Times','10'))
+  doseLabelCPMValue = Label(gaugeFrame, text="00", textvariable=CPM, font=('Times','28'))
+  doseLabeluSvValue = Label(gaugeFrame, text="---", textvariable=uSvh, font=('Times','10'))
+  doseLabelAlgoValue = Label(gaugeFrame, text="SLOW", textvariable=Algo, font=('Times','10'))
+  doseLabelCPSLabel.grid(row=0, column=0, rowspan=1, columnspan=1, padx=3, pady=3, sticky=N+W)
+  doseLabelCPMLabel.grid(row=1, column=0, rowspan=2, columnspan=2, padx=3, pady=3, sticky=N+W)
+  doseLabeluSvLabel.grid(row=0, column=3, rowspan=1, columnspan=1, padx=3, pady=3, sticky=E)
+  doseLabelAlgoLabel.grid(row=2, column=4, rowspan=1, columnspan=1, padx=3, pady=3, sticky=S+E)
+  doseLabelCPSValue.grid(row=0, column=1, rowspan=1, columnspan=1, padx=3, pady=3, sticky=N+W)
+  doseLabelCPMValue.grid(row=1, column=1, rowspan=3, columnspan=3, padx=3, pady=3, sticky=S+E+N)
+  doseLabeluSvValue.grid(row=0, column=4, rowspan=1, columnspan=1, padx=3, pady=3, sticky=N+W)
+  doseLabelAlgoValue.grid(row=3, column=4, rowspan=1, columnspan=1, padx=3, pady=3, sticky=S+E)
+
 
   comText = Text(bottomFrame, state='normal', width=60, height=20, bg="black", fg="lightgray")
   comText.bind('<<Modified>>',showEnd)
