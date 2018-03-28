@@ -78,6 +78,7 @@ def readSerial():
 
 def getReelog():
   if ser.is_open:
+    # clear coms 
     ser.write("SILENT\n".encode('ascii'))
     # wait for possible "CPS, 0, CPM, 34, uSv/hr, 0.19, SLOW" in transit 
     # ~35-40 chars@1ms per char (9600bps)
@@ -85,7 +86,6 @@ def getReelog():
     ser.reset_input_buffer()
     ser.write("SILENT\n".encode('ascii'))
     response = ser.readline().decode('ascii')
-    #if response != 'OK\r\n' and re.match('CPS', response) is None:
     if response != 'OK\r\n':
       consolePrint("Error switching to SILENT {}".format(response), nl=True)
       return False
@@ -94,10 +94,10 @@ def getReelog():
     ser.write("REELOG\n".encode('ascii'))
     line1 = ser.readline()
     line2 = ser.readline()
-    #consolePrint(line1.decode('ascii'))
-    #consolePrint(line2.decode('ascii'))
+
     logmeta = line1.decode('ascii').rstrip().split(',')
     logdata = line2.decode('ascii').rstrip().split(',')
+    # need data validity check here
     consolePrint({'logmeta': logmeta, 'logdata': logdata}, nl=True)
     ser.write('NOISY\n'.encode('ascii'))
   return({'logmeta': logmeta, 'logdata': logdata })
