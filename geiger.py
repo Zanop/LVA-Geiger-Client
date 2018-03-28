@@ -102,18 +102,134 @@ def getReelog():
     ser.write('NOISY\n'.encode('ascii'))
   return({'logmeta': logmeta, 'logdata': logdata })
   
+def getInfo():
+  if ser.is_open:
+    info = {}
+    # clear coms 
+    ser.write("SILENT\n".encode('ascii'))
+    # wait for possible "CPS, 0, CPM, 34, uSv/hr, 0.19, SLOW" in transit 
+    # ~35-40 chars@1ms per char (9600bps)
+    time.sleep(0.04)
+    ser.reset_input_buffer()
+    ser.write("SILENT\n".encode('ascii'))
+    response = ser.readline().decode('ascii')
+    if response != 'OK\r\n':
+      consolePrint("Error switching to SILENT {}".format(response), nl=True)
+      return False
+    # Clear the buffer from reports
+    ser.reset_input_buffer()
+    # get Firmware/Protocol
+    ser.write("HELO\n".encode('ascii'))
+    line1 = ser.readline()
+    infoline = line1.decode('ascii').rstrip().split(',')
+    
+    info['firmware'] = infoline[1]
+    info['protocol_version'] = infoline[2]
+    
+    # Clear the buffer from reports
+    ser.reset_input_buffer()
+    # get current status
+    ser.write("STATUS\n".encode('ascii'))
+    line1 = ser.readline()
+    infoline = line1.decode('ascii').rstrip().split(',')
+    
+    '''
+    Resolution is a power of two thing, specifying what time range
+    each sample encompasses: "range = (15 * 2^res) seconds".
+    Lowest resolution possible is 1 (30 seconds per sample).
+    Highest resolution is not bounded in code, but because of the
+    exponential nature of the resolution, it is unlikely that you'd
+    ever encounter more than 15 (which equals 5d 16h per sample, or
+    more than 22 months of logging).
+    
+    The SRAM and EEPROM log are different only in the first 20 minutes
+    of uptime. After that their IDs are equal (the EEPROM one becomes
+    what the SRAM one was), and the SRAM log is no longer updated.
+    '''
+    info['battery_milivolts'] = infoline[0]
+    info['uptime_seconds'] = infoline[1]
+    info['eeprom_log_id'] = infoline[2]
+    info['eeprom_log_number_of_samples'] = infoline[3]
+    info['eeprom_log_resolution'] = infoline[4]
+    info['sram_log_id'] = infoline[5]
+    info['sram_log_number_of_samples'] = infoline[6]
+    
+    # Clear the buffer from reports
+    ser.reset_input_buffer()
+    # get Device ID
+    ser.write("GETID\n".encode('ascii'))
+    line1 = ser.readline()
+    infoline = line1.decode('ascii').rstrip().split(',')
+    
+    info['device_id'] = infoline[0]
+    
+    # Clear the buffer from reports
+    ser.reset_input_buffer()
+    # get Tube Multiplier
+    ser.write("GETTM\n".encode('ascii'))
+    line1 = ser.readline()
+    infoline = line1.decode('ascii').rstrip().split(',')
+    '''
+    Synopsis: This is the tube sensitivity conversion factor. If you have
+    X counts per minute, and the sensitiity is (N/D), the radiation
+    would be calculated as ((X * N) / (D * 100)) uSv/h.
+
+    Note:     The original geiger counter assumed this factor to be 57/100, or
+    0.57, for the SBM-20 tube. What we introduced here is the same
+    rational arithmetics (in order to avoid floating-point), but the
+    numerator and especially the denominator are no longer hard-coded.
+    This provides for easily achieving very high precision without
+    comlpicating runtime computations on the device too much.
+
+    Example:  If you run the geiger tube through calibration and it turns out
+    that the actual sensitivity was 0.5617, you can approximate that
+    sufficiently with 91/162.
+    '''
+    info['tube_multiplier'] = infoline[0]
+    
+    # Clear the buffer from reports
+    ser.reset_input_buffer()
+    # get radiation level alarm threshold, in uSv/h.
+    ser.write("GETRA\n".encode('ascii'))
+    line1 = ser.readline()
+    infoline = line1.decode('ascii').rstrip().split(',')
+    
+    info['radiation_level_alarm'] = infoline[0]
+    
+    # Clear the buffer from reports
+    ser.reset_input_buffer()
+    # get the accumulated dose alarm threshold, in units of 10*uSv.
+    ser.write("GETDA\n".encode('ascii'))
+    line1 = ser.readline()
+    infoline = line1.decode('ascii').rstrip().split(',')
+    
+    info['accumulated_dose_alarm'] = infoline[0]
+    
+    
+    # need data validity check here
+    consolePrint(info, nl=True)
+    ser.write('NOISY\n'.encode('ascii'))
+  return(info)
+  
 # Scroll the console at the bottom
 def showEnd(event):
   comText.see(END)
   comText.edit_modified(0) #IMPORTANT - or <<Modified>> will not be called later.
 
 if __name__ == "__main__":
+  CPS=0
+  CPM=0
+  uSvh=0
   topFrame = Frame(root)
   mainFrame = Frame(root)
   bottomFrame = Frame(root)
   topFrame.pack(side="top", fill="x")
   mainFrame.pack(fill="x")
   bottomFrame.pack(side="bottom", fill="x")
+  gaugeFrame = LabelFrame(mainFrame, text="Dose", labelanchor="nw")
+  infoFrame = LabelFrame(mainFrame, text="Device Info", labelanchor="nw")
+  gaugeFrame.grid(row=0, column=0, padx=5, pady=5, sticky=N+S+W+E)
+  infoFrame.grid(row=0, column=1, padx=5, pady=5, sticky=N+E+S)
 
   comLabel = Label(topFrame, text="Com")
   comLabel.grid(row=0)
@@ -124,10 +240,13 @@ if __name__ == "__main__":
   logButton = Button(topFrame, text="Readlog", command=getReelog)
   logButton.grid(row=0, column=4)
 
-  doseLabel = Label(mainFrame, textvariable = reading, font=('Times', '24'))
-  doseLabel.pack(fill="x")
 
-  comText = Text(bottomFrame, state='normal', width=80, height=20, bg="black", fg="lightgray")
+  doseLabel = Label(gaugeFrame, textvariable = reading, font=('Times', '24'))
+  doseLabel.grid(row=0, column=0)
+  infoLabel = Label(infoFrame, text="FW: r336")
+  infoLabel.grid(row=0, column=1)
+
+  comText = Text(bottomFrame, state='normal', width=60, height=20, bg="black", fg="lightgray")
   comText.bind('<<Modified>>',showEnd)
   comText.pack()
 
