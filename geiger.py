@@ -9,6 +9,10 @@ root.winfo_toplevel().title("Geiger Counter")
 reading = StringVar()
 comStatus = StringVar()
 lvaStatus = StringVar()
+CPS = StringVar()
+CPM = StringVar()
+uSvh = StringVar()
+Algo = StringVar()
 comStatus.set("COM")
 lvaStatus.set("LVA")
 reading.set("CPS: -, CPM: --, --- uSv/h")
@@ -74,6 +78,10 @@ def readSerial():
     if m != None:
       #consolePrint(sline + "\n" + m.group(3))
       reading.set(sline)
+      CPS.set(m.group(1))
+      CPM.set(m.group(2))
+      uSvh.set(m.group(3))
+      Algo.set(m.group(4))
       consolePrint(sline, nl=True)
 
 def getReelog():
@@ -217,10 +225,6 @@ def showEnd(event):
   comText.edit_modified(0) #IMPORTANT - or <<Modified>> will not be called later.
 
 if __name__ == "__main__":
-  CPS="1"
-  CPM="34"
-  uSvh="0.14"
-  Algo="SLOW"
   topFrame = Frame(root)
   mainFrame = Frame(root)
   bottomFrame = Frame(root)
