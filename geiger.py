@@ -246,6 +246,9 @@ if __name__ == "__main__":
   lvaStatusLabel.grid(row=0, column=3)
   logButton = Button(topFrame, text="Readlog", command=getReelog)
   logButton.grid(row=0, column=4)
+  infoButton = Button(topFrame, text="DeviceInfo", command=getInfo)
+  infoButton.grid(row=0, column=5)
+
 
 
   #doseLabel = Label(gaugeFrame, textvariable = reading, font=('Times', '24'))
