@@ -108,12 +108,19 @@ def showEnd(event):
   comText.edit_modified(0) #IMPORTANT - or <<Modified>> will not be called later.
 
 if __name__ == "__main__":
+  CPS=0
+  CPM=0
+  uSvh=0
   topFrame = Frame(root)
   mainFrame = Frame(root)
   bottomFrame = Frame(root)
   topFrame.pack(side="top", fill="x")
   mainFrame.pack(fill="x")
   bottomFrame.pack(side="bottom", fill="x")
+  gaugeFrame = LabelFrame(mainFrame, text="Dose", labelanchor="nw")
+  infoFrame = LabelFrame(mainFrame, text="Device Info", labelanchor="nw")
+  gaugeFrame.grid(row=0, column=0, padx=5, pady=5, sticky=N+S+W+E)
+  infoFrame.grid(row=0, column=1, padx=5, pady=5, sticky=N+E+S)
 
   comLabel = Label(topFrame, text="Com")
   comLabel.grid(row=0)
@@ -124,10 +131,13 @@ if __name__ == "__main__":
   logButton = Button(topFrame, text="Readlog", command=getReelog)
   logButton.grid(row=0, column=4)
 
-  doseLabel = Label(mainFrame, textvariable = reading, font=('Times', '24'))
-  doseLabel.pack(fill="x")
 
-  comText = Text(bottomFrame, state='normal', width=80, height=20, bg="black", fg="lightgray")
+  doseLabel = Label(gaugeFrame, textvariable = reading, font=('Times', '24'))
+  doseLabel.grid(row=0, column=0)
+  infoLabel = Label(infoFrame, text="FW: r336")
+  infoLabel.grid(row=0, column=1)
+
+  comText = Text(bottomFrame, state='normal', width=60, height=20, bg="black", fg="lightgray")
   comText.bind('<<Modified>>',showEnd)
   comText.pack()
 
