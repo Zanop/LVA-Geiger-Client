@@ -5,7 +5,7 @@ import re
 import time
 
 root = Tk()
-root.winfo_toplevel().title("Geiger Counter")
+root.winfo_toplevel().title("LVA Geiger Counter")
 reading = StringVar()
 comStatus = StringVar()
 lvaStatus = StringVar()
@@ -225,6 +225,24 @@ def showEnd(event):
   comText.edit_modified(0) #IMPORTANT - or <<Modified>> will not be called later.
 
 if __name__ == "__main__":
+  #Setup Data dir
+
+  APPNAME = "LvaGeigerCounter"
+  import sys
+  from os import path, environ
+  if sys.platform == 'darwin':
+      from AppKit import NSSearchPathForDirectoriesInDomains
+      # http://developer.apple.com/DOCUMENTATION/Cocoa/Reference/Foundation/Miscellaneous/Foundation_Functions/Reference/reference.html#//apple_ref/c/func/NSSearchPathForDirectoriesInDomains
+      # NSApplicationSupportDirectory = 14
+      # NSUserDomainMask = 1
+      # True for expanding the tilde into a fully qualified path
+      appdata = path.join(NSSearchPathForDirectoriesInDomains(14, 1, True)[0], APPNAME)
+  elif sys.platform == 'win32':
+      appdata = path.join(environ['APPDATA'], APPNAME)
+  else:
+      appdata = path.expanduser(path.join("~", "." + APPNAME))
+
+  # Setup the interface
   topFrame = Frame(root)
   mainFrame = Frame(root)
   bottomFrame = Frame(root)
